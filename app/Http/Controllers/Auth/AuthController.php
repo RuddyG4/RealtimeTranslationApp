@@ -26,6 +26,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user,
+            'token' => $user->createToken('web')->plainTextToken,   
         ]);
     }
 
@@ -52,12 +53,18 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
+            return response()->json([
+                'message' => 'The provided credentials are incorrect.',
+            ], 401);
+            /* throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
-            ]);
+            ]); */
         }
 
-        return $user->createToken($request->device_name)->plainTextToken;
+        return response()->json([
+            'token' => $user->createToken($request->device_name)->plainTextToken,
+            'user' => $user,
+        ]);
     }
 
     /**

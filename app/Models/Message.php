@@ -5,19 +5,33 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Message extends Model
 {
     use HasFactory;
+
+    public $timestamps = false;
 
     protected $fillable = [
         'chat_id',
         'user_id',
         'type',
         'sent_at',
-        'delivered_at',
-        'seen_at',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sent_at' => 'datetime',
+        ];
+    }
 
     public function chat(): BelongsTo
     {
@@ -27,5 +41,27 @@ class Message extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Retrieve the original text message
+     */
+    public function originalText(): HasOne
+    {
+        return $this->hasOne(TextMessage::class, 'id')->where('is_original', true);
+    }
+    
+    /**
+     * Retrieve the text message transleted to the current user language.
+     */
+    public function translatedText(): HasOne
+    {
+        // return $this->hasOne(TextMessage::class, 'id')->where('language_id', auth()->user()->language_id);
+        return $this->hasOne(TextMessage::class, 'id')->where('is_original', true); // For Development only
+    }
+    
+    public function textMessages(): HasMany
+    {
+        return $this->hasMany(TextMessage::class, 'id');
     }
 }

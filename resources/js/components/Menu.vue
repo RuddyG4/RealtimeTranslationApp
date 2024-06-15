@@ -1,5 +1,6 @@
 <template>
-    <div class="xl:block sm:flex-2 w-64 bg-gray-200"
+    <div
+        class="xl:block sm:flex-2 w-64 bg-gray-200"
         :class="isOpen ? 'block' : 'hidden'"
     >
         <div class="user-profile text-center">
@@ -13,7 +14,7 @@
                 />
             </div>
             <div class="text-gray-800 mt-8">
-                Omer Mohamed Ali
+                {{ store.state.auth.user.first_name }}
                 <span class="inline-block align-text-bottom">
                     <ArrowDownIcon />
                 </span>
@@ -39,7 +40,7 @@
             </router-link>
             <router-link
                 class="block py-4 px-12 border-l-4 text-gray-600 hover:bg-gray-300 hover:text-black"
-                :to="{ name: 'profile'}"
+                :to="{ name: 'profile' }"
             >
                 <span class="inline-block align-text-bottom mr-2">
                     <CalendarIcon />
@@ -85,12 +86,14 @@ import SettingsIcon from "./icons/SettingsIcon.vue";
 import CalendarIcon from "./icons/CalendarIcon.vue";
 import UsersGroupIcon from "./icons/UsersGroupIcon.vue";
 import ArrowDownIcon from "./icons/ArrowDownIcon.vue";
+import { useStore } from "vuex";
 
 const props = defineProps({
     isOpen: {
         type: Boolean,
         default: false,
-        required: true
-    }
-})
+        required: true,
+    },
+});
+const store = useStore();
 </script>

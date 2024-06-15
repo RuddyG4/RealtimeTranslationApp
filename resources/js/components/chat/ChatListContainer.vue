@@ -13,4 +13,11 @@
 
 <script setup>
 import ChatList from "./ChatList.vue";
+
+const props = defineProps({
+    chats: {
+        type: Array,
+        required: true,
+    },
+});
 </script>

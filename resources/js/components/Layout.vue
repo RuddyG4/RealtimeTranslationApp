@@ -1,21 +1,21 @@
 <template>
     <div class="w-full h-screen">
         <div class="flex h-full">
-            <Menu :isOpen="isOpen" />
+            <Menu :isOpen="isMenuOpen" />
             <div class="flex-1 bg-gray-100 w-full h-full">
                 <div
                     class="main-body container m-auto w-11/12 h-full flex flex-col"
                 >
-                    <div class="py-4 flex-2 flex flex-row">
+                    <div class="py-4 flex flex-row">
                         <div class="flex-1">
                             <span
                                 class="xl:hidden inline-block text-gray-700 hover:text-gray-900 align-bottom"
                             >
                                 <span
-                                    class="block h-6 w-6 p-1 rounded-full hover:bg-gray-400"
-                                    @click="isOpen = !isOpen"
+                                    class="block h-6 w-6 p-1 rounded-full hover:bg-gray-400 cursor-pointer"
+                                    @click="isMenuOpen = !isMenuOpen"
                                 >
-                                    <MenuIcon v-if="!isOpen" />
+                                    <MenuIcon v-if="!isMenuOpen" />
                                     <CloseIcon v-else />
                                 </span>
                             </span>
@@ -23,21 +23,10 @@
                                 class="lg:hidden inline-block ml-8 text-gray-700 hover:text-gray-900 align-bottom"
                             >
                                 <span
-                                    class="block h-6 w-6 p-1 rounded-full hover:bg-gray-400"
+                                    @click="isChatListOpen = !isChatListOpen"
+                                    class="block h-6 w-6 p-1 rounded-full hover:bg-gray-400 cursor-pointer"
                                 >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                                        ></path>
-                                    </svg>
+                                    <UserGroupIcon />
                                 </span>
                             </span>
                         </div>
@@ -85,7 +74,12 @@
                         </div>
                     </div>
 
-                    <router-view />
+                    <template v-if="route.name === 'chat'">
+                        <router-view :isChatListOpen="isChatListOpen" />
+                    </template>
+                    <template v-else>
+                        <router-view />
+                    </template>
                 </div>
             </div>
         </div>
@@ -99,13 +93,16 @@ import MenuIcon from "../components/icons/MenuIcon.vue";
 import CloseIcon from "../components/icons/CloseIcon.vue";
 import NotificationIcon from "./icons/NotificationIcon.vue";
 import RightFromBracketIcon from "./icons/RightFromBracketIcon.vue";
-import { useRouter } from "vue-router";
+import UserGroupIcon from "./icons/UserGroupIcon.vue";
+import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 
-const isOpen = ref(false);
+const isMenuOpen = ref(false);
+const isChatListOpen = ref(false);
 const processing = ref(false);
 const errorMessage = ref("");
 const router = useRouter();
+const route = useRoute();
 const store = useStore();
 
 const logout = async () => {
@@ -125,3 +122,28 @@ const logout = async () => {
         });
 };
 </script>
+
+<style>
+/* width */
+::-webkit-scrollbar {
+    width: 8px;
+    border-radius: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px #a1a1a1;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: rgb(118, 169, 250);
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(28, 100, 242);
+}
+</style>

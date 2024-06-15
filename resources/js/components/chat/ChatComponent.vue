@@ -1,25 +1,40 @@
 <template>
-    <div class="chat-area flex-1 flex flex-col">
-        <div class="flex-3">
+    <div v-if="isNotSelectedChat" class="chat-area flex-1 flex flex-col">
+        Select a chat
+    </div>
+    <div v-else class="chat-area flex-1 flex flex-col">
+        <div class="flex gap-2">
+            <div class="w-8 h-8 relative">
+                <img
+                    class="w-8 h-8 rounded-full mx-auto"
+                    src="assets/images/profile-image.png"
+                    alt="chat-user"
+                />
+                <span
+                    class="absolute w-3 h-3 bg-gray-400 rounded-full right-0 bottom-0 border-2 border-white"
+                ></span>
+            </div>
             <h2 class="text-xl py-1 mb-8 border-b-2 border-gray-200">
-                Chatting with <b>Mercedes Yemelyan</b>
+                <b>{{ chat.title }}</b>
             </h2>
         </div>
-        <div class="messages flex-1 overflow-auto">
-            <ReceivedMessage
-                message="Hey there. We would like to invite you over to our office
-                    for a visit. How about it?"
-            />
-            <ReceivedMessage
-                message="All travel expenses are covered by us of
-                                    course :D"
-            />
-            <SentMessage message="It's like a dream come true" />
-            <SentMessage message="I accept. Thank you very much." />
-            <ReceivedMessage
-                message="You are welome. We will stay in
-                                    touch."
-            />
+        <div class="messages flex-1 overflow-auto flex flex-col-reverse">
+            <template v-for="message in chat.messages">
+                <template v-if="message.type === MessageTypes.TEXT">
+                    <Message
+                        v-if="message.user_id === props.userId"
+                        :message="message.translated_text.message"
+                        :date="message.sent_at"
+                        type="sent"
+                    />
+                    <Message
+                        v-else
+                        :message="message.translated_text.message"
+                        :date="message.sent_at"
+                        type="received"
+                    />
+                </template>
+            </template>
         </div>
         <div class="flex-2 pt-4 pb-10">
             <div class="write bg-white shadow flex rounded-lg">
@@ -34,11 +49,12 @@
                 </div>
                 <div class="flex-1">
                     <textarea
-                        name="message"
+                        v-model="message"
                         class="w-full block outline-none py-4 px-4 bg-transparent"
                         rows="1"
                         placeholder="Type a message..."
                         autofocus
+                        @keyup.enter="sendMessage"
                     ></textarea>
                 </div>
                 <div class="flex-2 w-32 p-2 flex content-center items-center">
@@ -51,7 +67,15 @@
                     </div>
                     <div class="flex-1">
                         <button
-                            class="bg-blue-400 w-10 h-10 rounded-full inline-block"
+                            type="button"
+                            @click="sendMessage"
+                            :disabled="isSending || message === ''"
+                            class="w-10 h-10 rounded-full inline-block"
+                            :class="[
+                                message === ''
+                                    ? 'cursor-not-allowed bg-blue-400'
+                                    : 'bg-blue-600',
+                            ]"
                         >
                             <span class="inline-block align-text-bottom">
                                 <CheckIcon />
@@ -65,10 +89,59 @@
 </template>
 
 <script setup>
-import EmoticonIcon from '../icons/EmoticonIcon.vue';
-import ReceivedMessage from './ReceivedMessage.vue';
-import SentMessage from './SentMessage.vue';
-import PaperClipIcon from '../icons/PaperClipIcon.vue';
-import CheckIcon from '../icons/CheckIcon.vue';
+import EmoticonIcon from "../icons/EmoticonIcon.vue";
+import Message from "./MessageComponent.vue";
+import PaperClipIcon from "../icons/PaperClipIcon.vue";
+import CheckIcon from "../icons/CheckIcon.vue";
+import MessageTypes from "@/Enums/MessageTypes";
+import { computed, ref } from "vue";
 
+const emit = defineEmits(["newMessage"]);
+const props = defineProps({
+    chat: {
+        type: Object,
+        required: true,
+    },
+    userId: {
+        type: Number,
+        required: true,
+    },
+});
+
+const isNotSelectedChat = computed(() => {
+    return (
+        props.chat &&
+        Object.keys(props.chat).length === 0 &&
+        props.chat.constructor === Object
+    );
+});
+
+const message = ref("");
+const isSending = ref(false);
+
+const sendMessage = async () => {
+    if (message.value === "") {
+        return;
+    }
+
+    isSending.value = true;
+
+    const params = {
+        chatId: props.chat.id,
+        content: message.value,
+        type: MessageTypes.TEXT,
+    };
+    message.value = "";
+
+    try {
+        const response = await axios.post("/api/messages", params);
+
+        const newMessage = response.data.message;
+        emit("newMessage", newMessage);
+    } catch (error) {
+        console.error(error);
+    } finally {
+        isSending.value = false;
+    }
+};
 </script>

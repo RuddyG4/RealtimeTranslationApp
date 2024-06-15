@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ChatType;
+use App\Models\Chat;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserChatController extends Controller
 {
@@ -12,8 +15,20 @@ class UserChatController extends Controller
      */
     public function index(User $user)
     {
+        $chats = $user->chats;
+        $chats->load([
+            'members',
+            'messages' => function ($query) {
+                $query->with('translatedText')
+                    ->orderBy('sent_at', 'desc')
+                    ->limit(20);
+            },
+            'latestMessage' => function ($query) {
+                $query->with('translatedText');
+            }
+        ]);
         return response()->json([
-            'chats' => $user->chats,
+            'chats' => $chats,
         ]);
     }
 
@@ -22,7 +37,15 @@ class UserChatController extends Controller
      */
     public function store(Request $request, User $user)
     {
-        //
+        $userToChat = $request->input('userToChat');
+        $chat = null;
+        DB::transaction(function () use ($user, $userToChat, &$chat) {
+            $chat = Chat::create(['type' => ChatType::PRIVATE]);
+            $chat->members()->attach([$user->id, $userToChat["id"]]);
+            $chat->load(['members', 'messages.textMessage']);
+        });
+
+        return response()->json(['chat' => $chat]);
     }
 
     /**

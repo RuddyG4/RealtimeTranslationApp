@@ -87,6 +87,7 @@
                                     id="email"
                                     placeholder="example@example.com"
                                     class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
+                                    tabindex="1"
                                 />
                                 <span
                                     v-if="validationErrors.email"
@@ -118,6 +119,7 @@
                                     id="password"
                                     placeholder="Your Password"
                                     class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-md dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-400 dark:focus:border-blue-400 focus:ring-blue-400 focus:outline-none focus:ring focus:ring-opacity-40"
+                                    tabindex="2"
                                 />
                                 <span
                                     v-if="validationErrors.password"
@@ -130,9 +132,10 @@
                             <div class="mt-6">
                                 <button
                                     :disabled="processing"
-                                    class="w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-400 focus:outline-none focus:bg-blue-400 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
+                                    class="w-full px-4 py-2 flex justify-center tracking-wide text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-400 focus:outline-none focus:bg-blue-400 focus:ring focus:ring-blue-300 focus:ring-opacity-50"
                                 >
-                                    Sign in
+                                    <FwbSpinner size="6" v-if="processing" />
+                                    <span v-else>Sign in</span>
                                 </button>
                             </div>
                         </form>
@@ -154,6 +157,7 @@
 </template>
 
 <script setup>
+import { FwbSpinner } from "flowbite-vue";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";

@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chat_members', function (Blueprint $table) {
-            // $table->id();
-            $table->foreignId('chat_id')->constrained();
-            $table->foreignId('user_id')->constrained();
+        Schema::create('group_chat_members', function (Blueprint $table) {
+            $table->foreignId('chat_id');
+            $table->foreignId('user_id');
+            $table->boolean('is_admin');
+            $table->foreign(['user_id', 'chat_id'])
+                ->references(['user_id', 'chat_id'])
+                ->on('chat_members');
             $table->primary(['user_id', 'chat_id']);
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('chat_members');
+        Schema::dropIfExists('group_chat_members');
     }
 };

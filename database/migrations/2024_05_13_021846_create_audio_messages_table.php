@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('audio_messages', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->primary();
             $table->string('audio', 255);
+            $table->string('extension', 10);
+            // $table->unsignedInteger('duration');
+            $table->boolean('is_original');
 
             $table->foreign('id')->references('id')->on('messages')
                 ->cascadeOnUpdate()

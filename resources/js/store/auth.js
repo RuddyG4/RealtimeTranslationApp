@@ -21,6 +21,9 @@ export default {
         setUser(state, value) {
             state.user = value;
         },
+        setUserState(state, value) {
+            state.user.state = value;
+        },
     },
     actions: {
         login({ commit }) {

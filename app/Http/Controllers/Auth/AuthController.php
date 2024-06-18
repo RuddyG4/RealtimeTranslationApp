@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserState;
+use App\Events\UserStateChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -37,8 +39,11 @@ class AuthController extends Controller
             abort(401, 'Invalid credentials');
         }
         $request->session()->regenerate();
+
+        $user = User::with('language')->find(auth()->user()->id);
+        $user->updateUserState(UserState::ONLINE);
         return response()->json([
-            'user' => Auth::user(),
+            'user' => $user,
         ]);
     }
 
@@ -50,7 +55,9 @@ class AuthController extends Controller
             'device_name' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)
+            ->with('language')
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -72,6 +79,9 @@ class AuthController extends Controller
      */
     public function logout(Request $request): \Illuminate\Http\RedirectResponse
     {
+        $user = User::find(auth()->user()->id);
+        $user->updateUserState(UserState::OFFLINE);
+        
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

@@ -3,6 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Enums\ChatType;
+use App\Events\UserStateChanged;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,7 +29,7 @@ class User extends Authenticatable
         'email',
         'password',
         'language_id',
-        'is_active',
+        'state',
     ];
 
     /**
@@ -68,5 +71,18 @@ class User extends Authenticatable
     public function chats(): BelongsToMany
     {
         return $this->belongsToMany(Chat::class, 'chat_members', 'user_id', 'chat_id');
+    }
+    
+    public function privateChats(): BelongsToMany
+    {
+        return $this->belongsToMany(Chat::class, 'chat_members', 'user_id', 'chat_id')
+            ->where('type', ChatType::PRIVATE);
+    }
+
+    public function updateUserState($newState)
+    {
+        $this->state = $newState;
+        $this->save();
+        broadcast(new UserStateChanged($this))->toOthers();
     }
 }

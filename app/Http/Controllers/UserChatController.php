@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ChatType;
 use App\Models\Chat;
 use App\Models\User;
+use App\Services\MessageTranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,18 +16,38 @@ class UserChatController extends Controller
      */
     public function index(User $user)
     {
-        $chats = $user->chats;
-        $chats->load([
-            'members',
-            'messages' => function ($query) {
-                $query->with('translatedText')
-                    ->orderBy('sent_at', 'desc')
-                    ->limit(20);
-            },
-            'latestMessage' => function ($query) {
-                $query->with('translatedText');
-            }
-        ]);
+        $chats = $user->chats()
+            ->with([
+                'members',
+                'messages' => function ($query) {
+                    $query->with('translatedText')
+                        ->orderBy('sent_at', 'desc')
+                        ->limit(20);
+                },
+                'latestMessage' => function ($query) {
+                    $query->with('translatedText');
+                }
+            ])
+            ->get();
+        // Verificar si los mensajes están traducidos al idioma del usuario y traducirlos si no lo estan
+        $newMessagesTranslated = false;
+        $messageTranslationService = new MessageTranslationService();
+        foreach ($chats as $chat) {
+            $newMessagesTranslated = ($messageTranslationService->verifyAndTranslate($chat->messages));
+        }
+        if ($newMessagesTranslated) {
+            $chats->load([
+                'messages' => function ($query) {
+                    $query->with('translatedText')
+                        ->orderBy('sent_at', 'desc')
+                        ->limit(20);
+                },
+                'latestMessage' => function ($query) {
+                    $query->with('translatedText');
+                }
+            ]);
+        }
+        
         return response()->json([
             'chats' => $chats,
         ]);

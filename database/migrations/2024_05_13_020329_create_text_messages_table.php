@@ -12,16 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('text_messages', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->primary();
-            $table->text('message');
+            $table->id();
+            $table->foreignId('message_id');
+            $table->text('content');
             $table->boolean('is_original');
             $table->foreignId('language_id')->constrained()
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
-            $table->foreign('id')->references('id')->on('messages')
+            $table->foreign('message_id')->references('id')->on('messages')
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
+            $table->primary(['id', 'message_id']);
         });
     }
 

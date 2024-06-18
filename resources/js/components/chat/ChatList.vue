@@ -6,7 +6,7 @@
             <span class="text-gray-600">loading...</span>
         </div>
     </div>
-    <div v-else-if="false" class="h-full px-2">
+    <div v-else-if="props.chats.length === 0" class="h-full px-2">
         <div
             class="flex justify-center items-center bg-gray-200 text-center h-[98%] rounded"
         >
@@ -30,8 +30,9 @@
                         src="assets/images/profile-image.png"
                         alt="chat-user"
                     />
-                    <span
-                        class="absolute w-4 h-4 bg-green-400 rounded-full right-0 bottom-0 border-2 border-white"
+                    <span v-if="chat.state !== null"
+                        class="absolute w-4 h-4 rounded-full right-0 bottom-0 border-2 border-white"
+                        :class="[UserStates.colors[chat.state]]"
                     ></span>
                 </div>
             </div>
@@ -40,7 +41,7 @@
                     <span class="text-gray-800">{{ chat.title }}</span>
                 </div>
                 <div>
-                    <small v-if="chat.latest_message" class="text-gray-600">{{ chat.latest_message.translated_text.message }}</small>
+                    <small v-if="chat.latest_message" class="text-gray-600">{{ chat.latest_message.translated_text.content }}</small>
                     <small v-else class="text-gray-600">No messages</small>
                 </div>
             </div>
@@ -61,8 +62,8 @@
 </template>
 
 <script setup>
-import { useStore } from "vuex";
 import { format } from "@formkit/tempo";
+import UserStates from "@/Enums/UserStates";
 
 const props = defineProps({
     chats: {
@@ -80,6 +81,4 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["chatSelected"]);
-
-const store = useStore();
 </script>

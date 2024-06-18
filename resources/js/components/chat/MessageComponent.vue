@@ -13,8 +13,8 @@
                         type === 'received',
                 }"
             >
-                <span>
-                    {{ message }}
+                <span v-if="message.type === MessageTypes.TEXT">
+                    {{ text }}
                 </span>
             </div>
             <!-- <div :class="[type === 'sent' ? 'pr-4' : 'pl-4']">
@@ -29,26 +29,30 @@
 <script setup>
 import { computed } from "vue";
 import { format } from "@formkit/tempo";
+import MessageTypes from "@/Enums/MessageTypes";
+import { useStore } from "vuex";
 
+const store = useStore();
 const props = defineProps({
     message: {
-        type: String,
-        required: true,
-    },
-    type: {
-        type: String,
-        required: true,
-        // validator(value) {
-        //     return ["sent", "received"].includes(value);
-        // },
-    },
-    date: {
-        type: String,
+        type: Object,
         required: true,
     },
 });
 
 const time = computed(() => {
-    return format(props.date, { time: "short" }, 'es');
+    return format(props.message.sent_at, { time: "short" }, store.state.auth.user.language.code);
+});
+
+const text = computed(() => {
+    return props.message.translated_text
+        ? props.message.translated_text.content
+        : "No translated message";
+});
+
+const type = computed(() => {
+    return props.message.user_id === store.state.auth.user.id
+        ? "sent"
+        : "received";
 });
 </script>

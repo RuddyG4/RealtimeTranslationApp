@@ -48,7 +48,7 @@ class Message extends Model
      */
     public function originalText(): HasOne
     {
-        return $this->hasOne(TextMessage::class, 'id')->where('is_original', true);
+        return $this->hasOne(TextMessage::class)->where('is_original', true);
     }
     
     /**
@@ -56,12 +56,12 @@ class Message extends Model
      */
     public function translatedText(): HasOne
     {
-        // return $this->hasOne(TextMessage::class, 'id')->where('language_id', auth()->user()->language_id);
-        return $this->hasOne(TextMessage::class, 'id')->where('is_original', true); // For Development only
+        return $this->hasOne(TextMessage::class)->where('language_id', auth()->user()->language_id);
+        // return $this->hasOne(TextMessage::class, 'id')->where('is_original', true); // For Development only
     }
     
     public function textMessages(): HasMany
     {
-        return $this->hasMany(TextMessage::class, 'id');
+        return $this->hasMany(TextMessage::class);
     }
 }

@@ -13,8 +13,11 @@
                     class="block"
                 />
             </div>
-            <div class="text-gray-800 mt-8">
-                {{ store.state.auth.user.first_name }}
+            <div class="text-gray-800 mt-8 flex justify-center items-center gap-4">
+                <div class="flex flex-col">
+                    <span>{{ store.state.auth.user.first_name }}</span>
+                    <span class="text-gray-500">({{ store.state.auth.user.language.name }})</span>
+                </div>
                 <span class="inline-block align-text-bottom">
                     <ArrowDownIcon />
                 </span>

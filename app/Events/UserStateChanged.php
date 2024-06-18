@@ -3,7 +3,7 @@
 namespace App\Events;
 
 use App\Enums\UserState;
-use App\Models\Message;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -12,23 +12,17 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class UserStateChanged implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * The message instance.
-     *
-     * @var \App\Models\Message
-     */
-    public $message;
-
-    /**
      * Create a new event instance.
      */
-    public function __construct(Message $message)
-    {
-        $this->message = $message;
+    public function __construct(
+        public User $user
+    ) {
+        //
     }
 
     /**
@@ -39,14 +33,17 @@ class MessageSent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         // Hacemos Broadcast para cada usuario en el chat del mensaje
-        $chat = $this->message->chat;
-        $users = $chat->members;
+        $user = User::find(auth()->user()->id);
+        $chatsIds = $user->privateChats()->pluck('id');
+        $users = User::whereHas('chats', function ($query) use ($chatsIds) {
+            $query->whereIn('id', $chatsIds);
+        })
+            ->where('id', '<>', $user->id)
+            ->where('state', '<>', UserState::OFFLINE)
+            ->get();
         $channelsToBroadcastOn = [];
-        foreach ($users as $user) {
-            // Se hace la transmisión a los usuarios que estén activos (no offline)
-            if ($user->id !== auth()->user()->id && $user->state !== UserState::OFFLINE) {
-                $channelsToBroadcastOn[] = new PrivateChannel('chatUsers.' . $user->id);
-            }
+        foreach ($users as $activeUser) {
+            $channelsToBroadcastOn[] = new PrivateChannel('chatUsers.' . $activeUser->id);
         }
         return $channelsToBroadcastOn;
     }

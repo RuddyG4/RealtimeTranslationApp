@@ -29,7 +29,7 @@
                         type="button"
                         class="rounded-full bg-green-500 px-4 py-2 flex justify-center items-center"
                     >
-                        <span  class="text-sm text-white mr-2">New chat</span>
+                        <span class="text-sm text-white mr-2">New chat</span>
                         <PlusIcon color="white" />
                     </button>
                 </div>
@@ -90,12 +90,28 @@ const setChatTitle = (chat) => {
     return title;
 };
 
+const setChatUserState = (chat) => {
+    let state = null;
+    if (chat.type === ChatType.PRIVATE) {
+        const userToChat = chat.members.find(
+            (member) => member.id !== store.state.auth.user.id
+        );
+        state = userToChat.state;
+    }
+    return state;
+};
+
 const computedChats = computed(() => {
     return chats.value.map((chat) => {
         let title = setChatTitle(chat);
+        const state =
+            chat.state !== null && chat.state !== undefined
+                ? chat.state
+                : setChatUserState(chat);
         return {
             ...chat,
             title,
+            state,
         };
     });
 });
@@ -132,6 +148,7 @@ const pushNewChat = (chat) => {
     selectedChat.value = {
         ...chat,
         title: setChatTitle(chat),
+        state: setChatUserState(chat),
     };
 };
 
@@ -140,7 +157,23 @@ const selectChat = (chat) => {
 };
 
 const addNewMessage = (message) => {
-    const newMessageChat = chats.value.find((chat) => chat.id === message.chat_id);
+    const newMessageChat = chats.value.find(
+        (chat) => chat.id === message.chat_id
+    );
+    let i = 0;
+    const translatedMessages = message.text_messages;
+    while (!message.translated_text && i < translatedMessages.length) {
+        if (
+            translatedMessages[i].language_id ===
+            store.state.auth.user.language_id
+        ) {
+            message.translated_text = translatedMessages[i];
+            message.translated_text = translatedMessages[i];
+        }
+        i++;
+    }
+    delete message.original_text;
+    delete message.text_messages;
     newMessageChat.messages.unshift(message);
     newMessageChat.latest_message = message;
 };
@@ -151,6 +184,19 @@ Channel.listen("MessageSent", (e) => {
     const chat = chats.value.find((chat) => chat.id === chatId);
     if (chat) {
         addNewMessage(e.message);
+    }
+});
+
+Channel.listen("UserStateChanged", (e) => {
+    console.log(e.user);
+    const userId = e.user.id;
+    const chat = chats.value.find(
+        (chat) =>
+            chat.type === ChatType.PRIVATE &&
+            chat.members.some((member) => member.id === userId)
+    );
+    if (chat) {
+        chat.state = e.user.state;
     }
 });
 </script>

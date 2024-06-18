@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ChatType;
+use App\Events\UserStateChanged;
 use App\Models\Chat;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -34,17 +35,20 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        //
+        return response()->json(['user' => $user]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $data = $request->only('state');
+        $user->update($data);
+        broadcast(new UserStateChanged($user))->toOthers();
+        return response()->json(['message' => 'User updated succesfully']);
     }
 
     /**
@@ -57,7 +61,7 @@ class UserController extends Controller
 
     public function newUsersToChat(Request $request)
     {
-        $privateChatsIds = Chat::where('type', ChatType::PRIVATE)->pluck('id'); 
+        $privateChatsIds = Chat::where('type', ChatType::PRIVATE)->pluck('id');
         $userList = User::whereDoesntHave('chats', function ($query) use ($privateChatsIds) { // Users that doesnt have a private chat started with him
             $query->whereIn('id', $privateChatsIds);
         })

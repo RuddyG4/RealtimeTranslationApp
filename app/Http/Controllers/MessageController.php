@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\MessageType;
 use App\Events\MessageSent;
 use App\Models\Message;
+use App\Services\MessageTranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,13 +28,12 @@ class MessageController extends Controller
         $chatId = $request->input('chatId');
         $content = $request->input('content');
         $type = $request->input('type');
-        $newMessage = new Message();
         // Verificar si el tipo (type) de mensaje es válido
         if (!in_array($type, MessageType::values(), true)) {
             throw new \Exception('Invalid message type');
         }
 
-        DB::transaction(function () use ($userId, $chatId, $content, $type, &$newMessage) {
+        $newMessage = DB::transaction(function () use ($userId, $chatId, $content, $type) {
 
             $newMessage = Message::create([
                 'chat_id' => $chatId,
@@ -46,11 +46,10 @@ class MessageController extends Controller
             switch ($type) {
                 case MessageType::TEXT->value:
                     $newMessage->textMessages()->create([
-                        'message' => $content,
+                        'content' => $content,
                         'is_original' => true,
                         'language_id' => auth()->user()->language_id
                     ]);
-                    $newMessage->load('translatedText');
                     break;
 
                 case MessageType::AUDIO->value:
@@ -64,8 +63,14 @@ class MessageController extends Controller
                 default:
                     throw new \Exception('Invalid message type');
             }
+            // Translate for online users
+            $messageTranslationService = new MessageTranslationService();
+            $messageTranslationService->translateMessageForOnlineUsers($newMessage);
+            $newMessage->load('textMessages');
+            return $newMessage;
         });
 
+        // Broadcast to channels for online users
         broadcast(new MessageSent($newMessage))->toOthers();
 
         return response()->json([

@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-screen">
+    <div v-if="store.state.auth.authenticated" class="w-full h-screen">
         <div class="flex h-full">
             <Menu :isOpen="isMenuOpen" />
             <div class="flex-1 bg-gray-100 w-full h-full">
@@ -34,9 +34,12 @@
                             <span class="inline-block text-gray-700">
                                 Status:
                                 <span
-                                    class="inline-block align-text-bottom w-4 h-4 bg-green-400 rounded-full border-2 border-white"
+                                    class="inline-block align-text-bottom w-4 h-4 rounded-full border-2 border-white"
+                                    :class="[userState.colorClass]"
                                 ></span>
-                                <b class="hidden md:inline-block">Online</b>
+                                <b class="hidden md:inline-block">{{
+                                    userState.name
+                                }}</b>
                                 <span class="inline-block align-text-bottom">
                                     <svg
                                         fill="none"
@@ -87,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import Menu from "./Menu.vue";
 import MenuIcon from "../components/icons/MenuIcon.vue";
 import CloseIcon from "../components/icons/CloseIcon.vue";
@@ -96,6 +99,7 @@ import RightFromBracketIcon from "./icons/RightFromBracketIcon.vue";
 import UserGroupIcon from "./icons/UserGroupIcon.vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
+import UserStates from "@/Enums/UserStates";
 
 const isMenuOpen = ref(false);
 const isChatListOpen = ref(false);
@@ -121,6 +125,14 @@ const logout = async () => {
             processing.value = false;
         });
 };
+
+const userState = computed(() => {
+    return {
+        code: store.state.auth.user.state,
+        name: UserStates.properties[store.state.auth.user.state],
+        colorClass: UserStates.colors[store.state.auth.user.state],
+    };
+});
 </script>
 
 <style>
@@ -132,8 +144,8 @@ const logout = async () => {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px #a1a1a1;
-  border-radius: 10px;
+    box-shadow: inset 0 0 5px #a1a1a1;
+    border-radius: 10px;
 }
 
 /* Handle */

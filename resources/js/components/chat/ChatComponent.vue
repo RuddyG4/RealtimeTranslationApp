@@ -1,6 +1,9 @@
 <template>
-    <div v-if="isNotSelectedChat" class="chat-area flex-1 flex flex-col">
-        Select a chat
+    <div v-if="isNotSelectedChat" class="chat-area flex-1">
+        <div class="flex flex-col justify-center items-center gap-8 bg-slate-200 rounded-lg h-[98%]">
+            <MessageChatIcon class="opacity-50" />
+        <span class="opacity-70">Select a chat (or create a new) and start to chat.</span>
+        </div>
     </div>
     <div v-else class="chat-area flex-1 flex flex-col">
         <div class="flex gap-2">
@@ -19,22 +22,7 @@
             </h2>
         </div>
         <div class="messages flex-1 overflow-auto flex flex-col-reverse">
-            <template v-for="message in chat.messages">
-                <template v-if="message.type === MessageTypes.TEXT">
-                    <Message
-                        v-if="message.user_id === props.userId"
-                        :message="message.translated_text.message"
-                        :date="message.sent_at"
-                        type="sent"
-                    />
-                    <Message
-                        v-else
-                        :message="message.translated_text.message"
-                        :date="message.sent_at"
-                        type="received"
-                    />
-                </template>
-            </template>
+            <Message v-for="message in chat.messages" :message="message" />
         </div>
         <div class="flex-2 pt-4 pb-10">
             <div class="write bg-white shadow flex rounded-lg">
@@ -95,6 +83,7 @@ import PaperClipIcon from "../icons/PaperClipIcon.vue";
 import CheckIcon from "../icons/CheckIcon.vue";
 import MessageTypes from "@/Enums/MessageTypes";
 import { computed, ref } from "vue";
+import MessageChatIcon from "../icons/MessageChatIcon.vue";
 
 const emit = defineEmits(["newMessage"]);
 const props = defineProps({

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('email', 255)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->unsignedSmallInteger('state')->default(0); // 0 = offline, 1 = online, 2 = busy, 3 = idle
+            $table->unsignedSmallInteger('state')->default(0); // 0 = offline, 1 = online, 2 = busy, 3 = idle, 4 = in a meeting
             $table->foreignId('language_id')->constrained();
             $table->rememberToken();
             $table->timestamps();

@@ -12,7 +12,8 @@ class TextMessage extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'message',
+        'message_id',
+        'content',
         'is_original',
         'language_id',
     ];

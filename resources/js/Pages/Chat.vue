@@ -10,12 +10,25 @@
                 :class="{ hidden: !isChatListOpen }"
             >
                 <div class="search flex-2 pb-6 px-2">
-                    <input
-                        v-model="searchText"
-                        type="text"
-                        class="outline-none py-2 block w-full bg-transparent border-b-2 border-gray-200"
-                        placeholder="Search"
-                    />
+                    <FwbInput v-model="searchText" placeholder="Search...">
+                        <template #prefix>
+                            <svg
+                                aria-hidden="true"
+                                class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                />
+                            </svg>
+                        </template>
+                    </FwbInput>
                 </div>
                 <ChatList
                     :chats="filteredChats"
@@ -57,6 +70,7 @@ import { computed, ref } from "vue";
 import PlusIcon from "../components/icons/PlusIcon.vue";
 import NewChatModal from "../components/chat/NewChatModal.vue";
 import ChatType from "@/Enums/ChatTypes";
+import { FwbInput } from "flowbite-vue";
 
 const props = defineProps({
     isChatListOpen: {

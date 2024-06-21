@@ -104,6 +104,25 @@ const setChatTitle = (chat) => {
     return title;
 };
 
+const setChatIcon = (chat) => {
+    let icon = "";
+    if (chat.type === ChatType.PRIVATE) {
+        const userId = store.state.auth.user.id;
+        const userToChat = chat.members.find((member) => member.id !== userId);
+        icon = userToChat.photo;
+    } else if (chat.type === ChatType.GROUP) {
+        icon = chat.subject;
+    } else {
+        // ChatType.PERSONAL
+        icon =
+            store.state.auth.user.first_name +
+            " " +
+            store.state.auth.user.last_name +
+            "(You)";
+    }
+    return icon;
+};
+
 const setChatUserState = (chat) => {
     let state = null;
     if (chat.type === ChatType.PRIVATE) {
@@ -126,6 +145,7 @@ const computedChats = computed(() => {
             ...chat,
             title,
             state,
+            icon: setChatIcon(chat),
         };
     });
 });
@@ -163,6 +183,7 @@ const pushNewChat = (chat) => {
         ...chat,
         title: setChatTitle(chat),
         state: setChatUserState(chat),
+        icon: setChatIcon(chat),
     };
 };
 
@@ -202,7 +223,6 @@ Channel.listen("MessageSent", (e) => {
 });
 
 Channel.listen("UserStateChanged", (e) => {
-    console.log(e.user);
     const userId = e.user.id;
     const chat = chats.value.find(
         (chat) =>
@@ -212,5 +232,10 @@ Channel.listen("UserStateChanged", (e) => {
     if (chat) {
         chat.state = e.user.state;
     }
+});
+
+Channel.listen("ChatCreated", (e) => {
+    const newChat = e.chat;
+    pushNewChat(newChat);
 });
 </script>

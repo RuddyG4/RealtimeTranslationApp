@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('password');
             $table->unsignedSmallInteger('state')->default(0); // 0 = offline, 1 = online, 2 = busy, 3 = idle, 4 = in a meeting
             $table->foreignId('language_id')->constrained();
+            $table->string('photo', 255)->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

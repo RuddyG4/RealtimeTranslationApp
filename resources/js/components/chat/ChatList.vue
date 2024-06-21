@@ -27,7 +27,7 @@
                 <div class="w-12 h-12 relative">
                     <img
                         class="w-12 h-12 rounded-full mx-auto"
-                        src="assets/images/profile-image.png"
+                        :src="chat.icon"
                         alt="chat-user"
                     />
                     <span v-if="chat.state !== null"

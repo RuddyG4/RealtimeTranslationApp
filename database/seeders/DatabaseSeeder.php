@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(LanguageSeeder::class);
         
-        User::factory(10)->create();
+        User::factory(20)->create();
         $language = Language::where('code', 'es')->first();
 
         User::create([
@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'ruddygonzqh@gmail.com',
             'password' => bcrypt('password'),
             'language_id' => $language->id,
+            'photo' => "https://randomuser.me/api/portraits/men/" . fake()->randomNumber(2) . ".jpg"
         ]);
     }
 }

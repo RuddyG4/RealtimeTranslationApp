@@ -65,6 +65,7 @@ class UserController extends Controller
         $userList = User::whereDoesntHave('chats', function ($query) use ($privateChatsIds) { // Users that doesnt have a private chat started with him
             $query->whereIn('id', $privateChatsIds);
         })
+            ->where('id', '<>', auth()->user()->id)
             ->when($request->has('userQuery'), function ($query) use ($request) {
                 $query->where(function ($query) use ($request) {
                     $query->where('first_name', 'ilike', '%' . $request->input('userQuery') . '%')

@@ -8,9 +8,9 @@
                 class="w-32 h-32 rounded-full m-auto mt-16 border-2 border-white bg-white shadow-lg"
             >
                 <img
-                    src="assets/images/profile-image.png"
+                    :src="store.state.auth.user.photo"
                     alt="user"
-                    class="block"
+                    class="block rounded-full"
                 />
             </div>
             <div class="text-gray-800 mt-8 flex justify-center items-center gap-4">

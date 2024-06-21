@@ -6,18 +6,18 @@
         </div>
     </div>
     <div v-else class="chat-area flex-1 flex flex-col">
-        <div class="flex gap-2">
+        <div class="flex gap-2 border-b-2">
             <div class="w-8 h-8 relative">
                 <img
                     class="w-8 h-8 rounded-full mx-auto"
-                    src="assets/images/profile-image.png"
+                    :src="chat.icon"
                     alt="chat-user"
                 />
                 <span
                     class="absolute w-3 h-3 bg-gray-400 rounded-full right-0 bottom-0 border-2 border-white"
                 ></span>
             </div>
-            <h2 class="text-xl py-1 mb-8 border-b-2 border-gray-200">
+            <h2 class="text-xl py-1 mb-2 border-gray-200">
                 <b>{{ chat.title }}</b>
             </h2>
         </div>
@@ -47,13 +47,13 @@
                 </div>
                 <div class="flex-2 w-32 p-2 flex content-center items-center">
                     <div class="flex-1 text-center">
-                        <span class="text-gray-400 hover:text-gray-800">
+                        <button type="button" class="text-gray-400 hover:text-gray-800">
                             <span class="inline-block align-text-bottom">
                                 <PaperClipIcon />
                             </span>
-                        </span>
+                        </button>
                     </div>
-                    <div class="flex-1">
+                    <div v-if="message" class="flex-1">
                         <button
                             type="button"
                             @click="sendMessage"
@@ -67,6 +67,16 @@
                         >
                             <span class="inline-block align-text-bottom">
                                 <CheckIcon />
+                            </span>
+                        </button>
+                    </div>
+                    <div v-else class="flex-1">
+                        <button
+                            type="button"
+                            class="w-10 h-10 bg-blue-600 rounded-full inline-block"
+                        >
+                            <span class="inline-block align-text-bottom">
+                                <MicrophoneIcon class="text-white" />
                             </span>
                         </button>
                     </div>
@@ -84,6 +94,7 @@ import CheckIcon from "../icons/CheckIcon.vue";
 import MessageTypes from "@/Enums/MessageTypes";
 import { computed, ref } from "vue";
 import MessageChatIcon from "../icons/MessageChatIcon.vue";
+import MicrophoneIcon from "../icons/MicrophoneIcon.vue";
 
 const emit = defineEmits(["newMessage"]);
 const props = defineProps({

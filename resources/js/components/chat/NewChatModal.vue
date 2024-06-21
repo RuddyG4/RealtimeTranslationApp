@@ -48,7 +48,7 @@
                                 <img
                                     class="rounded-full"
                                     alt="A"
-                                    src="https://randomuser.me/api/portraits/men/62.jpg"
+                                    :src="user.photo"
                                 />
                             </div>
                         </template>
@@ -70,9 +70,6 @@
             <div class="flex justify-end">
                 <fwb-button @click="closeModal" color="alternative">
                     Close
-                </fwb-button>
-                <fwb-button class="ml-2" @click="closeModal" color="green">
-                    I accept
                 </fwb-button>
             </div>
         </template>

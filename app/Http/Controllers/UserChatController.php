@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ChatType;
+use App\Events\ChatCreated;
 use App\Models\Chat;
 use App\Models\User;
 use App\Services\MessageTranslationService;
@@ -59,12 +60,13 @@ class UserChatController extends Controller
     public function store(Request $request, User $user)
     {
         $userToChat = $request->input('userToChat');
-        $chat = null;
-        DB::transaction(function () use ($user, $userToChat, &$chat) {
+        $chat = DB::transaction(function () use ($user, $userToChat) {
             $chat = Chat::create(['type' => ChatType::PRIVATE]);
             $chat->members()->attach([$user->id, $userToChat["id"]]);
             $chat->load(['members', 'messages.textMessage']);
+            return $chat;
         });
+        broadcast(new ChatCreated($chat))->toOthers();
 
         return response()->json(['chat' => $chat]);
     }

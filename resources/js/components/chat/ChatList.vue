@@ -30,7 +30,8 @@
                         :src="chat.icon"
                         alt="chat-user"
                     />
-                    <span v-if="chat.state !== null"
+                    <span
+                        v-if="chat.state !== null"
                         class="absolute w-4 h-4 rounded-full right-0 bottom-0 border-2 border-white"
                         :class="[UserStates.colors[chat.state]]"
                     ></span>
@@ -41,13 +42,32 @@
                     <span class="text-gray-800">{{ chat.title }}</span>
                 </div>
                 <div>
-                    <small v-if="chat.latest_message" class="text-gray-600">{{ chat.latest_message.translated_text.content }}</small>
+                    <small v-if="chat.latest_message" class="text-gray-600">
+                        <span
+                            v-if="
+                                chat.latest_message.type === MessageTypes.TEXT
+                            "
+                        >
+                            {{ chat.latest_message.translated_text.content }}
+                        </span>
+                        <span
+                            v-else-if="
+                                chat.latest_message.type === MessageTypes.AUDIO
+                            "
+                            class="flex"
+                        >
+                            <MicrophoneIcon class="w-4" />
+                            audio message
+                        </span>
+                    </small>
                     <small v-else class="text-gray-600">No messages</small>
                 </div>
             </div>
             <div class="flex-2 text-right">
                 <div>
-                    <small v-if="chat.latest_message" class="text-gray-500">{{ format(chat.latest_message.sent_at) }}</small>
+                    <small v-if="chat.latest_message" class="text-gray-500">
+                        {{ format(chat.latest_message.sent_at) }}
+                    </small>
                 </div>
                 <div>
                     <small
@@ -64,6 +84,8 @@
 <script setup>
 import { format } from "@formkit/tempo";
 import UserStates from "@/Enums/UserStates";
+import MessageTypes from "@/Enums/MessageTypes";
+import MicrophoneIcon from "../icons/MicrophoneIcon.vue";
 
 const props = defineProps({
     chats: {

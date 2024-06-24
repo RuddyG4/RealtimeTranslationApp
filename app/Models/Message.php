@@ -13,6 +13,7 @@ class Message extends Model
     use HasFactory;
 
     public $timestamps = false;
+    protected $touches = ['chat'];
 
     protected $fillable = [
         'chat_id',
@@ -63,5 +64,23 @@ class Message extends Model
     public function textMessages(): HasMany
     {
         return $this->hasMany(TextMessage::class);
+    }
+    
+    public function audioMessages(): HasMany
+    {
+        return $this->hasMany(AudioMessage::class);
+    }
+    
+    public function translatedAudio(): HasOne
+    {
+        return $this->hasOne(AudioMessage::class)->where('language_id', auth()->user()->language_id);
+    }
+
+    /**
+     * Retrieve the original audio message
+     */
+    public function originalAudio(): HasOne
+    {
+        return $this->hasOne(TextMessage::class)->where('is_original', true);
     }
 }

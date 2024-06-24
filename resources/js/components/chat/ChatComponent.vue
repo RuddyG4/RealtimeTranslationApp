@@ -1,8 +1,12 @@
 <template>
     <div v-if="isNotSelectedChat" class="chat-area flex-1">
-        <div class="flex flex-col justify-center items-center gap-8 bg-slate-200 rounded-lg h-[98%]">
+        <div
+            class="flex flex-col justify-center items-center gap-8 bg-slate-200 rounded-lg h-[98%]"
+        >
             <MessageChatIcon class="opacity-50" />
-        <span class="opacity-70">Select a chat (or create a new) and start to chat.</span>
+            <span class="opacity-70"
+                >Select a chat (or create a new) and start to chat.</span
+            >
         </div>
     </div>
     <div v-else class="chat-area flex-1 flex flex-col">
@@ -47,7 +51,10 @@
                 </div>
                 <div class="flex-2 w-32 p-2 flex content-center items-center">
                     <div class="flex-1 text-center">
-                        <button type="button" class="text-gray-400 hover:text-gray-800">
+                        <button
+                            type="button"
+                            class="text-gray-400 hover:text-gray-800"
+                        >
                             <span class="inline-block align-text-bottom">
                                 <PaperClipIcon />
                             </span>
@@ -76,7 +83,10 @@
                             class="w-10 h-10 bg-blue-600 rounded-full inline-block"
                         >
                             <span class="inline-block align-text-bottom">
-                                <MicrophoneIcon class="text-white" />
+                                <MicrophoneIcon
+                                    @click="showRecordAudioModal"
+                                    class="text-white w-6"
+                                />
                             </span>
                         </button>
                     </div>
@@ -84,6 +94,12 @@
             </div>
         </div>
     </div>
+
+    <RecordAudioModal
+        :isShowModal="isShowRecordAudioModal"
+        @showModal="showRecordAudioModal"
+        @sendAudio="sendAudioMessage"
+    />
 </template>
 
 <script setup>
@@ -95,6 +111,7 @@ import MessageTypes from "@/Enums/MessageTypes";
 import { computed, ref } from "vue";
 import MessageChatIcon from "../icons/MessageChatIcon.vue";
 import MicrophoneIcon from "../icons/MicrophoneIcon.vue";
+import RecordAudioModal from "./RecordAudioModal.vue";
 
 const emit = defineEmits(["newMessage"]);
 const props = defineProps({
@@ -138,6 +155,33 @@ const sendMessage = async () => {
 
         const newMessage = response.data.message;
         emit("newMessage", newMessage);
+    } catch (error) {
+        console.error(error);
+    } finally {
+        isSending.value = false;
+    }
+};
+
+// RECORD AUDIO MODAL
+const isShowRecordAudioModal = ref(false);
+const showRecordAudioModal = (show = true) => {
+    isShowRecordAudioModal.value = !isShowRecordAudioModal.value;
+};
+
+const sendAudioMessage = async (formData) => {
+    formData.append("chatId", props.chat.id);
+    formData.append("type", MessageTypes.AUDIO);
+    isSending.value = true;
+
+    try {
+        const response = await axios.post("/api/messages", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        const newMessage = response.data.message;
+        // emit("newMessage", newMessage);
     } catch (error) {
         console.error(error);
     } finally {

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\MessageType;
 use App\Models\ChatMember;
 use App\Models\Language;
 use App\Models\User;
@@ -15,25 +16,24 @@ class MessageTranslationService
      */
     public function translateMessages($messages)
     {
-        $texts = [];
-        foreach ($messages as $message) {
-            $texts[] = $message->originalText->content;
+        $textMessagesToTranslate = $messages->filter(function ($message) {
+            return $message->type === MessageType::TEXT->value && $message->translatedText === null;
+        });
+        $audioMessagesToTranslate = $messages->filter(function ($message) {
+            return $message->type === MessageType::AUDIO->value && $message->translatedAudio === null;
+        });
+        if ($textMessagesToTranslate->isNotEmpty()) {
+            $this->translateTextMessages($textMessagesToTranslate);
         }
-        $translationService = new TranslationService();
-        $userLanguage = Language::find(auth()->user()->language_id);
-        $translatedTexts = $translationService->translate($texts, $userLanguage->code);
-        foreach ($messages as $index => $message) {
-            $message->translatedText()->create([
-                'content' => $translatedTexts[$index]->getTranslatedText(),
-                'is_original' => false,
-                'language_id' => auth()->user()->language_id
-            ]);
-        }
+        // $this->translateAudioMessages($audioMessagesToTranslate);
     }
 
     public function isMessageTranslated($message): bool
     {
-        if ($message->translatedText) {
+        if ($message->type === MessageType::TEXT->value && $message->translatedText) {
+            return true;
+        }
+        if ($message->type === MessageType::AUDIO->value && $message->translatedAudio) {
             return true;
         }
         return false;
@@ -49,7 +49,7 @@ class MessageTranslationService
     {
         $newMessagesToTranslate = false;
         $ids = [];
-        $messages->load('translatedText');
+        $messages->load(['translatedText', 'translatedAudio']);
         // Verify if the message is translated into the user's language
         foreach ($messages as $message) {
             if (!$this->isMessageTranslated($message)) {
@@ -60,7 +60,7 @@ class MessageTranslationService
         // Filter untranslated messages
         $messagesToTranslate = $messages->whereIn('id', $ids);
         if ($newMessagesToTranslate) {
-            $messagesToTranslate->load('originalText');
+            $messagesToTranslate->load(['originalText', 'originalAudio']);
             $this->translateMessages($messagesToTranslate);
         }
         return $newMessagesToTranslate;
@@ -94,5 +94,38 @@ class MessageTranslationService
             }
         }
         $this->translateSingleMessage($message, $languagesToTranslate);
+    }
+
+    public function translateTextMessages($textMessages)
+    {
+        $texts = $textMessages->pluck('originalText.content')->toArray();
+        $translationService = new TranslationService();
+        $userLanguage = Language::find(auth()->user()->language_id);
+        $translatedTexts = $translationService->translate($texts, $userLanguage->code);
+        $i = 0;
+        foreach ($textMessages as $message) {
+            $message->translatedText()->create([
+                'content' => $translatedTexts[$i]->getTranslatedText(),
+                'is_original' => false,
+                'language_id' => auth()->user()->language_id
+            ]);
+            $i++;
+        }
+    }
+    
+    public function translateAudioMessages($audioMessages)
+    {
+        $texts = $audioMessages->pluck('originalAudio.transcription');
+        $translationService = new TranslationService();
+        $userLanguage = Language::find(auth()->user()->language_id);
+        $translatedTexts = $translationService->translate($texts, $userLanguage->code);
+        // POR TERMINAR, TODO
+        foreach ($audioMessages as $index => $message) {
+            $message->translatedAudio()->create([
+                'content' => $translatedTexts[$index]->getTranslatedText(),
+                'is_original' => false,
+                'language_id' => auth()->user()->language_id
+            ]);
+        }
     }
 }

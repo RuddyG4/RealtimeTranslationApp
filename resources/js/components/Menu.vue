@@ -13,10 +13,14 @@
                     class="block rounded-full"
                 />
             </div>
-            <div class="text-gray-800 mt-8 flex justify-center items-center gap-4">
+            <div
+                class="text-gray-800 mt-8 flex justify-center items-center gap-4"
+            >
                 <div class="flex flex-col">
                     <span>{{ store.state.auth.user.first_name }}</span>
-                    <span class="text-gray-500">({{ store.state.auth.user.language.name }})</span>
+                    <span class="text-gray-500"
+                        >({{ store.state.auth.user.language.name }})</span
+                    >
                 </div>
                 <span class="inline-block align-text-bottom">
                     <ArrowDownIcon />
@@ -25,13 +29,13 @@
         </div>
 
         <div class="menu mt-8">
-            <router-link
+            <!-- <router-link
                 class="block py-4 px-12 border-l-4 text-gray-600 hover:bg-gray-300 hover:text-black"
                 :to="{ name: 'home' }"
             >
                 <HomeIcon />
                 Home
-            </router-link>
+            </router-link> -->
             <router-link
                 class="block py-4 px-12 border-l-4 text-gray-600 hover:bg-gray-300 hover:text-black"
                 :to="{ name: 'chat' }"
@@ -68,6 +72,15 @@
                 </span>
                 Jobs
             </a>
+            <router-link
+                class="block py-4 px-12 border-l-4 text-gray-600 hover:bg-gray-300 hover:text-black"
+                :to="{ name: 'profile' }"
+            >
+                <span class="inline-block align-text-bottom mr-2">
+                    <UserIcon class="w-4" />
+                </span>
+                Profile
+            </router-link>
             <a
                 class="block py-4 px-12 border-l-4 text-gray-600 hover:bg-gray-300 hover:text-black"
                 href="javascript:return false;"
@@ -83,11 +96,12 @@
 
 <script setup>
 import HomeIcon from "./icons/HomeIcon.vue";
+import UserIcon from "@/components/icons/UserIcon.vue";
 import ChatIcon from "./icons/ChatIcon.vue";
 import FilesIcon from "./icons/FilesIcon.vue";
 import SettingsIcon from "./icons/SettingsIcon.vue";
 import CalendarIcon from "./icons/CalendarIcon.vue";
-import UsersGroupIcon from "./icons/UsersGroupIcon.vue";
+import UsersGroupIcon from "@/components/icons/UsersGroupIcon.vue";
 import ArrowDownIcon from "./icons/ArrowDownIcon.vue";
 import { useStore } from "vuex";
 

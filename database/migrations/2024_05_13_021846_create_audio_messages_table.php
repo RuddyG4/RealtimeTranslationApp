@@ -12,15 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('audio_messages', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->primary();
-            $table->string('audio', 255);
+            $table->id();
+            $table->foreignId('message_id');
+            $table->string('path', 255);
+            $table->string('relative_path', 255);
+            $table->text('transciption')->nullable();
             $table->string('extension', 10);
             // $table->unsignedInteger('duration');
             $table->boolean('is_original');
 
-            $table->foreign('id')->references('id')->on('messages')
+            $table->foreignId('language_id')->constrained()
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
+
+            $table->foreign('message_id')->references('id')->on('messages')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
+            $table->primary(['id', 'message_id']);
         });
     }
 

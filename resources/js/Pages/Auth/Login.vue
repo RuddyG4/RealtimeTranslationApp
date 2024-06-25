@@ -171,7 +171,7 @@ const user = ref({
 const validationErrors = ref({});
 const errorMessage = ref("");
 const processing = ref(false);
-
+axios.get('/sanctum/csrf-cookie')
 const login = async () => {
     processing.value = true;
     axios

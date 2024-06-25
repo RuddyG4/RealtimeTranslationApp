@@ -33,12 +33,11 @@ class UserStateChanged implements ShouldBroadcast
     public function broadcastOn(): array
     {
         // Hacemos Broadcast para cada usuario en el chat del mensaje
-        $user = User::find(auth()->user()->id);
-        $chatsIds = $user->privateChats()->pluck('id');
+        $chatsIds = $this->user->privateChats()->pluck('id');
         $users = User::whereHas('chats', function ($query) use ($chatsIds) {
             $query->whereIn('id', $chatsIds);
         })
-            ->where('id', '<>', $user->id)
+            ->where('id', '<>', $this->user->id)
             ->where('state', '<>', UserState::OFFLINE)
             ->get();
         $channelsToBroadcastOn = [];

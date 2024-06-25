@@ -55,10 +55,11 @@
                         <div class="w-full items-center flex">
                             <div class="mx-2 -mt-1">
                                 {{ user.first_name + " " + user.last_name }}
+                                <small class="text-gray-500">({{ user.language.name }})</small>
                                 <div
                                     class="text-xs truncate w-full normal-case font-normal -mt-1 text-gray-500"
                                 >
-                                    {{ user.language.name }}
+                                    {{ user.email }}
                                 </div>
                             </div>
                         </div>

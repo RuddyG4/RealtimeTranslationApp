@@ -26,7 +26,7 @@ class MessageController extends Controller
     public function store(Request $request)
     {
         $userId = auth()->user()->id;
-        $chatId = $request->input('chatId');
+        $chatId = (int) $request->input('chatId');
         $content = $request->input('content');
         $type = (int) $request->input('type');
         // Verificar si el tipo (type) de mensaje es válido
@@ -78,6 +78,8 @@ class MessageController extends Controller
             // Translate for online users
             return $newMessage;
         });
+        $messageTranslationService = new MessageTranslationService();
+        $newMessage = $messageTranslationService->translateMessageForOnlineUsers($newMessage);
 
         // Broadcast to channels for online users
         broadcast(new MessageSent($newMessage))->toOthers();

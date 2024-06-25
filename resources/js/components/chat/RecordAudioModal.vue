@@ -1,5 +1,5 @@
 <template>
-    <FwbModal v-if="isShowModal" @close="emit('showModal', false)">
+    <FwbModal v-if="isShowModal" @close="closeModal">
         <template #body>
             <div class="flex flex-col gap-4 items-center justify-center">
                 <div v-if="audio" class="flex items-center gap-2">
@@ -13,8 +13,9 @@
                         <SendIcon class="w-4 h-4 text-white" />
                     </button>
 
-                    <button type="button" class="px-2 h-8 rounded bg-red-500">
-                        <RefreshIcon class="w-4 h-4 text-white" />
+                    <button
+                        @click="discardRecording" type="button" class="px-2 h-8 rounded bg-red-500">
+                        <TrashIcon class="w-4 h-4 text-white" />
                     </button>
                 </div>
 
@@ -50,6 +51,7 @@
 import { FwbModal } from "flowbite-vue";
 import { ref, computed, onMounted } from "vue";
 import MicrophoneIcon from "@/components/icons/MicrophoneIcon.vue";
+import TrashIcon from "@/components/icons/TrashIcon.vue";
 import SendIcon from "@/components/icons/SendIcon.vue";
 import RefreshIcon from "../icons/RefreshIcon.vue";
 
@@ -135,12 +137,24 @@ const sendAudio = async () => {
         });
         formData.append("content", audioFile);
         emit("sendAudio", formData);
+        closeModal();
     }
 };
 
 onMounted(() => {
     setupMediaRecorder();
 });
+
+const discardRecording = () => {
+    audio.value = null;
+    blob.value = null;
+    audioChunks.value = [];
+}
+
+const closeModal = () => {
+    emit('showModal', false);
+    discardRecording();
+}
 </script>
 
 <style scoped>

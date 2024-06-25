@@ -4,9 +4,9 @@
             class="flex flex-col justify-center items-center gap-8 bg-slate-200 rounded-lg h-[98%]"
         >
             <MessageChatIcon class="opacity-50" />
-            <span class="opacity-70"
-                >Select a chat (or create a new) and start to chat.</span
-            >
+            <span class="opacity-70">
+                Select a chat (or create a new) and start to chat.
+            </span>
         </div>
     </div>
     <div v-else class="chat-area flex-1 flex flex-col">
@@ -181,7 +181,7 @@ const sendAudioMessage = async (formData) => {
         });
 
         const newMessage = response.data.message;
-        // emit("newMessage", newMessage);
+        emit("newMessage", newMessage);
     } catch (error) {
         console.error(error);
     } finally {

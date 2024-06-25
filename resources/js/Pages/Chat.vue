@@ -136,7 +136,7 @@ const setChatUserState = (chat) => {
 };
 
 const computedChats = computed(() => {
-    const c =  chats.value.map((chat) => {
+    const c = chats.value.map((chat) => {
         let title = setChatTitle(chat);
         const state =
             chat.state !== null && chat.state !== undefined
@@ -208,10 +208,9 @@ const addNewMessage = (message) => {
     );
     const messagesMap = {
         [MessageTypes.TEXT]: setNewTextMessage,
-    }
+        [MessageTypes.AUDIO]: setNewAudioMessage,
+    };
     messagesMap[message.type](message);
-    delete message.original_text;
-    delete message.text_messages;
     newMessageChat.messages.unshift(message);
     newMessageChat.latest_message = message;
 };
@@ -225,11 +224,28 @@ const setNewTextMessage = (message) => {
             store.state.auth.user.language_id
         ) {
             message.translated_text = translatedMessages[i];
-            message.translated_text = translatedMessages[i];
         }
         i++;
     }
-}
+    delete message.original_text;
+    delete message.text_messages;
+};
+
+const setNewAudioMessage = (message) => {
+    let i = 0;
+    const translatedAudios = message.audio_messages;
+    while (!message.translated_audio && i < translatedAudios.length) {
+        if (
+            translatedAudios[i].language_id ===
+            store.state.auth.user.language_id
+        ) {
+            message.translated_audio = translatedAudios[i];
+        }
+        i++;
+    }
+    delete message.original_audio;
+    delete message.audio_messages;
+};
 
 const Channel = Echo.private(`chatUsers.${store.state.auth.user.id}`);
 Channel.listen("MessageSent", (e) => {

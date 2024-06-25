@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Enums\MessageType;
+use App\Enums\UserState;
 use App\Models\ChatMember;
 use App\Models\Language;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class MessageTranslationService
 {
@@ -25,7 +27,9 @@ class MessageTranslationService
         if ($textMessagesToTranslate->isNotEmpty()) {
             $this->translateTextMessages($textMessagesToTranslate);
         }
-        // $this->translateAudioMessages($audioMessagesToTranslate);
+        if ($audioMessagesToTranslate->isNotEmpty()) {
+            $this->translateAudioMessages($audioMessagesToTranslate);
+        }
     }
 
     public function isMessageTranslated($message): bool
@@ -68,32 +72,87 @@ class MessageTranslationService
 
     public function translateSingleMessage($message, array $languages)
     {
-        // $message->load('originalText');
         $translationService = new TranslationService();
-        foreach ($languages as $language) {
-            $translatedTexts = $translationService->translate([$message->originalText->content], $language->code);
-            $message->translatedText()->create([
-                'content' => $translatedTexts[0]->getTranslatedText(),
-                'is_original' => false,
-                'language_id' => $language->id
-            ]);
+        switch ($message->type) {
+            case MessageType::TEXT->value:
+                foreach ($languages as $language) {
+                    $translatedTexts = $translationService->translate([$message->originalText->content], $language->code);
+                    $message->translatedText()->create([
+                        'content' => $translatedTexts[0]->getTranslatedText(),
+                        'is_original' => false,
+                        'language_id' => $language->id
+                    ]);
+                }
+                $message->load('textMessages');
+                break;
+
+            case MessageType::AUDIO->value:
+                foreach ($languages as $language) {
+                    if (!$message->originalAudio->transcription) {
+                        // Convertir voz a texto (transcribir el audio)
+                        $originalLanguage = $message->originalAudio->language;
+                        $speectToTextService = new SpeechToTextService();
+                        $transcription = $speectToTextService->transcript($message->originalAudio->relative_path, $originalLanguage->code);
+
+                        // Guardamos la transcipcion.
+                        $message->originalAudio->transcription = $transcription;
+                        $message->originalAudio->save();
+
+                        // Volvemos a cargar el audio original con la transcipcion.
+                        $message->load('originalAudio');
+                    }
+                    // traducir la transcripcion
+                    $translatedText = $translationService->translate([$message->originalAudio->transcription], $language->code);
+
+                    // Convertir texto a voz
+                    $textToSpeechService = new TextToSpeechService();
+                    $relative_path = $textToSpeechService->synthesizeSpeech($translatedText[0]->getTranslatedText(), $language->code);
+                    $message->translatedAudio()->create([
+                        'path' => Storage::url($relative_path),
+                        'relative_path' => $relative_path,
+                        'is_original' => false,
+                        'language_id' => $language->id,
+                        'extension' => 'webm',
+                    ]);
+                }
+                $message->load('audioMessages');
+                break;
+                // TODO: Implement other message types
+            default:
+                break;
         }
+        return $message;
     }
 
     public function translateMessageForOnlineUsers($message)
     {
-        $message->load('originalText');
         $usersIds = ChatMember::where('chat_id', $message->chat_id)->pluck('user_id');
         $usersFromChat = User::whereIn('id', $usersIds)
+            ->where('state', '<>', UserState::OFFLINE->value)
             ->with('language')
             ->get();
         $languagesToTranslate = [];
         foreach ($usersFromChat as $user) {
-            if ($user->language_id !== $message->originalText->language_id) {
-                $languagesToTranslate[] = $user->language;
+            switch ($message->type) {
+                case MessageType::TEXT->value:
+                    $message->load('originalText');
+                    if ($user->language_id !== $message->originalText->language_id) {
+                        $languagesToTranslate[] = $user->language;
+                    }
+                    break;
+
+                case MessageType::AUDIO->value:
+                    $message->load('originalAudio');
+                    if ($user->language_id !== $message->originalAudio->language_id) {
+                        $languagesToTranslate[] = $user->language;
+                    }
+                    break;
+                    // TODO: Implement other message types
+                default:
+                    break;
             }
         }
-        $this->translateSingleMessage($message, $languagesToTranslate);
+        return $this->translateSingleMessage($message, $languagesToTranslate);
     }
 
     public function translateTextMessages($textMessages)
@@ -112,19 +171,37 @@ class MessageTranslationService
             $i++;
         }
     }
-    
+
     public function translateAudioMessages($audioMessages)
     {
-        $texts = $audioMessages->pluck('originalAudio.transcription');
         $translationService = new TranslationService();
         $userLanguage = Language::find(auth()->user()->language_id);
-        $translatedTexts = $translationService->translate($texts, $userLanguage->code);
-        // POR TERMINAR, TODO
-        foreach ($audioMessages as $index => $message) {
+        foreach ($audioMessages as $message) {
+            if (!$message->originalAudio->transcription) {
+                // Convertir voz a texto (transcribir el audio)
+                $originalLanguage = $message->originalAudio->language;
+                $speectToTextService = new SpeechToTextService();
+                $transcription = $speectToTextService->transcript($message->originalAudio->relative_path, $originalLanguage->code);
+
+                // Guardamos la transcipcion.
+                $message->originalAudio->transcription = $transcription;
+                $message->originalAudio->save();
+
+                // Volvemos a cargar el audio original con la transcipcion.
+                $message->load('originalAudio');
+            }
+            // traducir la transcripcion
+            $translatedText = $translationService->translate([$message->originalAudio->transcription], $userLanguage->code);
+
+            // Convertir texto a voz
+            $textToSpeechService = new TextToSpeechService();
+            $relative_path = $textToSpeechService->synthesizeSpeech($translatedText[0]->getTranslatedText(), $userLanguage->code);
             $message->translatedAudio()->create([
-                'content' => $translatedTexts[$index]->getTranslatedText(),
+                'path' => Storage::url($relative_path),
+                'relative_path' => $relative_path,
                 'is_original' => false,
-                'language_id' => auth()->user()->language_id
+                'language_id' => $userLanguage->id,
+                'extension' => 'webm',
             ]);
         }
     }

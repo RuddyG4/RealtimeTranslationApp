@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('message_id');
             $table->string('path', 255);
             $table->string('relative_path', 255);
-            $table->text('transciption')->nullable();
+            $table->text('transcription')->nullable();
             $table->string('extension', 10);
             // $table->unsignedInteger('duration');
             $table->boolean('is_original');

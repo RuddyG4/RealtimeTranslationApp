@@ -85,35 +85,6 @@ Route::get('/test', function () {
     // file_put_contents('test.mp3', $resp->getAudioContent());
     return $output;
 });
-Route::get('/test2', function () {
-    $chats = auth()->user()->chats()
-            ->with([
-                'members',
-                'messages' => function ($query) {
-                    $query->with(['translatedText', 'originalText', 'translatedAudio'])
-                        ->orderBy('sent_at', 'desc')
-                        ->limit(20);
-                },
-                'latestMessage' => function ($query) {
-                    $query->with(['translatedText', 'translatedAudio']);
-                }
-            ])
-            ->orderBy('updated_at', 'desc')
-            ->get();
-
-    $messages = $chats->flatMap(function ($value) {
-        return $value->messages;
-    });
-    $textMessagesToTranslate = $messages->filter(function ($message) {
-        return $message->type === MessageType::TEXT->value && $message->translatedText === null;
-    });
-    dump($textMessagesToTranslate);
-    $new = collect(array_values($messages->all()));
-    dump($new);
-    $texts = $textMessagesToTranslate->pluck('originalText.content')->toArray();
-    dump($texts);
-    return "<pre>$chats</pre>";
-});
 
 Route::get('/{vue_capture?}', function () {
     return view('welcome');

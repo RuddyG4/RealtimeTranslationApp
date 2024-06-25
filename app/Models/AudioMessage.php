@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AudioMessage extends Model
 {
@@ -20,4 +21,9 @@ class AudioMessage extends Model
         'is_original',
         'language_id',
     ];
+
+    public function language(): BelongsTo
+    {
+        return $this->belongsTo(Language::class);
+    }
 }

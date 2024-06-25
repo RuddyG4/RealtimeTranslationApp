@@ -179,7 +179,7 @@ const login = async () => {
         .then((response) => {
             store.commit("auth/setUser", response.data.user);
             store.commit("auth/setAuthenticated", true);
-            router.push({ name: "home" });
+            router.push({ name: "chat" });
         })
         .catch((error) => {
             if (error.response && error.response.status === 422) {

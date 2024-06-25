@@ -8,6 +8,7 @@ use App\Models\Message;
 use App\Services\MessageTranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -25,15 +26,15 @@ class MessageController extends Controller
     public function store(Request $request)
     {
         $userId = auth()->user()->id;
-        $chatId = $request->input('chatId');
+        $chatId = (int) $request->input('chatId');
         $content = $request->input('content');
-        $type = $request->input('type');
+        $type = (int) $request->input('type');
         // Verificar si el tipo (type) de mensaje es válido
         if (!in_array($type, MessageType::values(), true)) {
             throw new \Exception('Invalid message type');
         }
 
-        $newMessage = DB::transaction(function () use ($userId, $chatId, $content, $type) {
+        $newMessage = DB::transaction(function () use ($userId, $chatId, $content, $type, $request) {
 
             $newMessage = Message::create([
                 'chat_id' => $chatId,
@@ -50,25 +51,35 @@ class MessageController extends Controller
                         'is_original' => true,
                         'language_id' => auth()->user()->language_id
                     ]);
+                    $messageTranslationService = new MessageTranslationService();
+                    $messageTranslationService->translateMessageForOnlineUsers($newMessage);
+                    $newMessage->load('textMessages');
                     break;
 
                 case MessageType::AUDIO->value:
-                    $newMessage->audioMessage()->create([
-                        'user_id' => $userId,
-                        'chat_id' => $chatId,
-                        'message' => $content
+                    $audio = $request->file('content');
+                    $extension = $audio->extension();
+                    $relative_path = $audio->store('audios');
+                    $path = Storage::url($relative_path);
+                    $newMessage->audioMessages()->create([
+                        'path' => $path,
+                        'relative_path' => $relative_path,
+                        'is_original' => true,
+                        'language_id' => auth()->user()->language_id,
+                        'extension' => $extension,
                     ]);
+
+                    $newMessage->load('audioMessages');
                     break;
                     // TODO: Implement other message types
                 default:
                     throw new \Exception('Invalid message type');
             }
             // Translate for online users
-            $messageTranslationService = new MessageTranslationService();
-            $messageTranslationService->translateMessageForOnlineUsers($newMessage);
-            $newMessage->load('textMessages');
             return $newMessage;
         });
+        $messageTranslationService = new MessageTranslationService();
+        $newMessage = $messageTranslationService->translateMessageForOnlineUsers($newMessage);
 
         // Broadcast to channels for online users
         broadcast(new MessageSent($newMessage))->toOthers();

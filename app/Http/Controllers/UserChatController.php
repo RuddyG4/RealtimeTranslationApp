@@ -21,14 +21,15 @@ class UserChatController extends Controller
             ->with([
                 'members',
                 'messages' => function ($query) {
-                    $query->with('translatedText')
+                    $query->with(['translatedText', 'translatedAudio'])
                         ->orderBy('sent_at', 'desc')
                         ->limit(20);
                 },
                 'latestMessage' => function ($query) {
-                    $query->with('translatedText');
+                    $query->with(['translatedText', 'translatedAudio']);
                 }
             ])
+            ->orderBy('updated_at', 'desc')
             ->get();
         // Verificar si los mensajes están traducidos al idioma del usuario y traducirlos si no lo estan
         $newMessagesTranslated = false;
@@ -39,16 +40,16 @@ class UserChatController extends Controller
         if ($newMessagesTranslated) {
             $chats->load([
                 'messages' => function ($query) {
-                    $query->with('translatedText')
+                    $query->with(['translatedText', 'translatedAudio'])
                         ->orderBy('sent_at', 'desc')
                         ->limit(20);
                 },
                 'latestMessage' => function ($query) {
-                    $query->with('translatedText');
+                    $query->with(['translatedText', 'translatedAudio']);
                 }
             ]);
         }
-        
+
         return response()->json([
             'chats' => $chats,
         ]);
@@ -61,7 +62,10 @@ class UserChatController extends Controller
     {
         $userToChat = $request->input('userToChat');
         $chat = DB::transaction(function () use ($user, $userToChat) {
-            $chat = Chat::create(['type' => ChatType::PRIVATE]);
+            $chat = Chat::create([
+                'type' => ChatType::PRIVATE,
+                'created_by' => $user->id
+            ]);
             $chat->members()->attach([$user->id, $userToChat["id"]]);
             $chat->load(['members', 'messages.textMessage']);
             return $chat;

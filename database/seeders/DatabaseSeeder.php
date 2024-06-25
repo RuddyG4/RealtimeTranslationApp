@@ -17,14 +17,23 @@ class DatabaseSeeder extends Seeder
         $this->call(LanguageSeeder::class);
         
         User::factory(20)->create();
-        $language = Language::where('code', 'es')->first();
+        $spanishLang = Language::where('code', 'es')->first();
+        $englishLang = Language::where('code', 'en')->first();
 
         User::create([
             'first_name' => 'Ruddy Gonzalo',
             'last_name' => 'Quispe Huanca',
             'email' => 'ruddygonzqh@gmail.com',
             'password' => bcrypt('password'),
-            'language_id' => $language->id,
+            'language_id' => $spanishLang->id,
+            'photo' => "https://randomuser.me/api/portraits/men/" . fake()->randomNumber(2) . ".jpg"
+        ]);
+        User::create([
+            'first_name' => 'Yordi',
+            'last_name' => 'Condori Escalera',
+            'email' => 'yordice77@gmail.com',
+            'password' => bcrypt('password'),
+            'language_id' => $englishLang->id,
             'photo' => "https://randomuser.me/api/portraits/men/" . fake()->randomNumber(2) . ".jpg"
         ]);
     }

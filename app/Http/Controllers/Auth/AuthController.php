@@ -8,10 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -28,7 +28,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user,
-            'token' => $user->createToken('web')->plainTextToken,   
+            'token' => $user->createToken('web')->plainTextToken,
         ]);
     }
 
@@ -47,7 +47,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function mobileLogin(Request $request)
+    public function mobileLogin(Request $request): JsonResponse
     {
         $request->validate([
             'email' => 'required|email',
@@ -63,10 +63,8 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'The provided credentials are incorrect.',
             ], 401);
-            /* throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]); */
         }
+        $user->updateUserState(UserState::ONLINE);
 
         return response()->json([
             'token' => $user->createToken($request->device_name)->plainTextToken,
@@ -81,7 +79,7 @@ class AuthController extends Controller
     {
         $user = User::find(auth()->user()->id);
         $user->updateUserState(UserState::OFFLINE);
-        
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
@@ -89,5 +87,21 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Log the user out of the mobile application.
+     */
+    public function mobileLogout(Request $request): JsonResponse
+    {
+        $user = User::find(auth()->user()->id);
+        // $user->currentAccessToken()->delete();
+        $user->tokens()->delete();
+        $user->updateUserState(UserState::OFFLINE);
+
+        return response()->json([
+            'token' => $user->createToken($request->device_name)->plainTextToken,
+            'user' => $user,
+        ]);
     }
 }

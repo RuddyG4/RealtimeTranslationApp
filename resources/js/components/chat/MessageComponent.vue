@@ -16,6 +16,13 @@
                 <span v-if="message.type === MessageTypes.TEXT">
                     {{ text }}
                 </span>
+                <audio
+                    v-else-if="message.type === MessageTypes.AUDIO"
+                    :src="message.translated_audio?.path"
+                    controls
+                >
+                    Audios not supported
+                </audio>
             </div>
             <!-- <div :class="[type === 'sent' ? 'pr-4' : 'pl-4']">
                 <small class="text-gray-500">
@@ -41,7 +48,11 @@ const props = defineProps({
 });
 
 const time = computed(() => {
-    return format(props.message.sent_at, { time: "short" }, store.state.auth.user.language.code);
+    return format(
+        props.message.sent_at,
+        { time: "short" },
+        store.state.auth.user.language.code
+    );
 });
 
 const text = computed(() => {

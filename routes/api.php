@@ -11,6 +11,7 @@ Route::get('/user', function (Request $request) {
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/mobile-logout', [AuthController::class, 'mobileLogout']);
     Route::get('/users/new-users-to-chat', [UserController::class, 'newUsersToChat']);
     Route::apiResource('users', UserController::class);
     Route::apiResource('users.chats', \App\Http\Controllers\UserChatController::class);

@@ -26,7 +26,23 @@
                                     @click="isChatListOpen = !isChatListOpen"
                                     class="block h-6 w-6 p-1 rounded-full hover:bg-gray-400 cursor-pointer"
                                 >
-                                    <UserGroupIcon />
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="16"
+                                        height="16"
+                                        stroke="currentColor"
+                                        fill="none"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        viewBox="0 0 24 24"
+                                        data-icon="SvgMessageSquare"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M21 15a2 2 0 01-2 2H7l-2 2-2 2V5a2 2 0 012-2h14a2 2 0 012 2v10z"
+                                        ></path>
+                                    </svg>
                                 </span>
                             </span>
                         </div>
@@ -90,13 +106,12 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed, ref } from "vue";
 import Menu from "./Menu.vue";
 import MenuIcon from "../components/icons/MenuIcon.vue";
 import CloseIcon from "../components/icons/CloseIcon.vue";
 import NotificationIcon from "./icons/NotificationIcon.vue";
 import RightFromBracketIcon from "./icons/RightFromBracketIcon.vue";
-import UserGroupIcon from "./icons/UserGroupIcon.vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import UserStates from "@/Enums/UserStates";

@@ -70,6 +70,7 @@ import { computed, ref } from "vue";
 import PlusIcon from "../components/icons/PlusIcon.vue";
 import NewChatModal from "../components/chat/NewChatModal.vue";
 import ChatType from "@/Enums/ChatTypes";
+import MessageTypes from "@/Enums/MessageTypes";
 import { FwbInput } from "flowbite-vue";
 
 const props = defineProps({
@@ -135,7 +136,7 @@ const setChatUserState = (chat) => {
 };
 
 const computedChats = computed(() => {
-    return chats.value.map((chat) => {
+    const c = chats.value.map((chat) => {
         let title = setChatTitle(chat);
         const state =
             chat.state !== null && chat.state !== undefined
@@ -147,6 +148,14 @@ const computedChats = computed(() => {
             state,
             icon: setChatIcon(chat),
         };
+    });
+    return c.sort((a, b) => {
+        // const x = a.latest_message ? a.latest_message.id : a.id;
+        // const y = b.latest_message ? b.latest_message.id : b.id;
+        if (a.latest_message && b.latest_message) {
+            return b.latest_message.id - a.latest_message.id;
+        }
+        return b.id - a.id;
     });
 });
 
@@ -177,14 +186,16 @@ const getChats = async () => {
 
 getChats();
 
-const pushNewChat = (chat) => {
-    chats.value.push(chat);
-    selectedChat.value = {
-        ...chat,
-        title: setChatTitle(chat),
-        state: setChatUserState(chat),
-        icon: setChatIcon(chat),
-    };
+const pushNewChat = (chat, selectNewChat = true) => {
+    chats.value.unshift(chat);
+    if (selectNewChat) {
+        selectedChat.value = {
+            ...chat,
+            title: setChatTitle(chat),
+            state: setChatUserState(chat),
+            icon: setChatIcon(chat),
+        };
+    }
 };
 
 const selectChat = (chat) => {
@@ -195,6 +206,16 @@ const addNewMessage = (message) => {
     const newMessageChat = chats.value.find(
         (chat) => chat.id === message.chat_id
     );
+    const messagesMap = {
+        [MessageTypes.TEXT]: setNewTextMessage,
+        [MessageTypes.AUDIO]: setNewAudioMessage,
+    };
+    messagesMap[message.type](message);
+    newMessageChat.messages.unshift(message);
+    newMessageChat.latest_message = message;
+};
+
+const setNewTextMessage = (message) => {
     let i = 0;
     const translatedMessages = message.text_messages;
     while (!message.translated_text && i < translatedMessages.length) {
@@ -203,14 +224,27 @@ const addNewMessage = (message) => {
             store.state.auth.user.language_id
         ) {
             message.translated_text = translatedMessages[i];
-            message.translated_text = translatedMessages[i];
         }
         i++;
     }
     delete message.original_text;
     delete message.text_messages;
-    newMessageChat.messages.unshift(message);
-    newMessageChat.latest_message = message;
+};
+
+const setNewAudioMessage = (message) => {
+    let i = 0;
+    const translatedAudios = message.audio_messages;
+    while (!message.translated_audio && i < translatedAudios.length) {
+        if (
+            translatedAudios[i].language_id ===
+            store.state.auth.user.language_id
+        ) {
+            message.translated_audio = translatedAudios[i];
+        }
+        i++;
+    }
+    delete message.original_audio;
+    delete message.audio_messages;
 };
 
 const Channel = Echo.private(`chatUsers.${store.state.auth.user.id}`);
@@ -236,6 +270,6 @@ Channel.listen("UserStateChanged", (e) => {
 
 Channel.listen("ChatCreated", (e) => {
     const newChat = e.chat;
-    pushNewChat(newChat);
+    pushNewChat(newChat, false);
 });
 </script>

@@ -38,7 +38,7 @@ class UserStateChanged implements ShouldBroadcast
             $query->whereIn('id', $chatsIds);
         })
             ->where('id', '<>', $this->user->id)
-            ->where('state', '<>', UserState::OFFLINE)
+            ->where('state', '<>', UserState::OFFLINE->value)
             ->get();
         $channelsToBroadcastOn = [];
         foreach ($users as $activeUser) {

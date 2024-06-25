@@ -9,20 +9,26 @@
             <span
                 v-if="props.chat.state !== null"
                 class="absolute w-4 h-4 rounded-full right-0 bottom-0 border-2 border-white"
-                :class="[UserStates.colors[chat.state]]"
+                :class="[UserStates.colors[props.chat.state]]"
             ></span>
         </div>
     </div>
     <div class="flex-1 px-2">
         <div class="truncate w-32">
-            <span class="text-gray-800">{{ chat.title }}</span>
+            <span class="text-gray-800">{{ props.chat.title }}</span>
         </div>
         <div>
             <small v-if="props.chat.latest_message" class="text-gray-600">
-                <span v-if="props.chat.latest_message.type === 0">
+                <span v-if="props.chat.latest_message.type === MessageTypes.TEXT">
                     {{ props.chat.latest_message.translated_text.content }}
                 </span>
-                <span v-else>file</span>
+                <span
+                    v-else-if="props.chat.latest_message.type === MessageTypes.AUDIO"
+                    class="flex"
+                >
+                    <MicrophoneIcon class="w-4" />
+                    audio message
+                </span>
             </small>
             <small v-else class="text-gray-600">No messages</small>
         </div>
@@ -46,6 +52,8 @@
 <script setup>
 import { format } from "@formkit/tempo";
 import UserStates from "@/Enums/UserStates";
+import MessageTypes from "@/Enums/MessageTypes";
+import MicrophoneIcon from "../icons/MicrophoneIcon.vue";
 
 const props = defineProps({
     chat: {

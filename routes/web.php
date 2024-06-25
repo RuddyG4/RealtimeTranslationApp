@@ -2,6 +2,7 @@
 
 use App\Enums\MessageType;
 use App\Http\Controllers\Auth\AuthController;
+use App\Services\TranslationService;
 use Google\Cloud\Translate\V3\TranslationServiceClient;
 use Illuminate\Support\Facades\Route;
 use Google\Cloud\Speech\V1\SpeechClient;
@@ -84,6 +85,16 @@ Route::get('/test', function () {
     Storage::put('audios/test/test.webm', $resp->getAudioContent());
     // file_put_contents('test.mp3', $resp->getAudioContent());
     return $output;
+});
+
+Route::get('/test2', function () {
+    $transServ = new TranslationService();
+    $res = $transServ->test();
+    $array = [];
+    foreach ($res as $r) {
+        $array[] = $r->getTranslatedText();
+    }
+    return $array;
 });
 
 Route::get('/{vue_capture?}', function () {

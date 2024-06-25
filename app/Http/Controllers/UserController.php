@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ChatType;
-use App\Events\UserStateChanged;
 use App\Models\Chat;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -37,6 +36,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        $user->load('language');
+        $user->language_name = $user->language->name;
         return response()->json(['user' => $user]);
     }
 
@@ -45,10 +46,21 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $data = $request->only('state');
-        $user->update($data);
-        broadcast(new UserStateChanged($user))->toOthers();
-        return response()->json(['message' => 'User updated succesfully']);
+        $validatedData = $request->validate([
+            'first_name' => 'required|string|max:40',
+            'last_name' => 'required|string|max:40',
+            'state' => 'required|integer',
+            'photo' => 'nullable|string|max:255',  // O una validación más específica para URLs
+        ]);
+        $user->update($validatedData);
+        $user->fresh();
+        $user->load('language');
+        $user->language_name = $user->language->name;
+        return response()->json([
+            'user' => $user,
+            'message' => 'User updated succesfully',
+            'data' => $request->all()
+        ]);
     }
 
     /**

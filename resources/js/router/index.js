@@ -17,9 +17,9 @@ const routes = [
                 component: () => import("./../Pages/Chat.vue"),
             },
             {
-                path: "",
+                path: "profile",
                 name: "profile",
-                component: () => import("./../Pages/Home.vue"),
+                component: () => import("./../Pages/Profile.vue"),
             },
         ],
         meta: {

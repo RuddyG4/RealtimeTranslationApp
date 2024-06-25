@@ -44,7 +44,7 @@ class MessageSent implements ShouldBroadcast
         $channelsToBroadcastOn = [];
         foreach ($users as $user) {
             // Se hace la transmisión a los usuarios que estén activos (no offline)
-            if ($user->id !== auth()->user()->id && $user->state !== UserState::OFFLINE) {
+            if ($user->id !== auth()->user()->id && $user->state !== UserState::OFFLINE->value) {
                 $channelsToBroadcastOn[] = new PrivateChannel('chatUsers.' . $user->id);
             }
         }
